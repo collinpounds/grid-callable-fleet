@@ -10,7 +10,7 @@ calls an event you can watch their power drop.
 
 ![The dashboard during a live statewide event](docs/dashboard.png)
 
-**Watch the 2-minute video:** [docs/launch-video.mp4](docs/launch-video.mp4) (every number in it is sourced in [docs/launch-video-sources.md](docs/launch-video-sources.md)).
+**Watch the video (2.5 minutes):** [docs/launch-video.mp4](docs/launch-video.mp4) (every number in it is sourced in [docs/launch-video-sources.md](docs/launch-video-sources.md)).
 
 ## What happens
 
