@@ -185,7 +185,7 @@ def ensure_v1(board: list[dict]) -> list[dict]:
     binary, err = build(v1)
     if not binary:
         sys.exit(f"baseline v001 does not build: {err}")
-    board.append({"version": 1, "author": "hand", "parent": None, "breakdown": simulate(binary, VERSIONS / "v001.score.json"),
+    board.append({"version": 1, "author": "Claude Code (baseline, before the loop)", "parent": None, "breakdown": simulate(binary, VERSIONS / "v001.score.json"),
                   "time": time.strftime("%H:%M:%S")})
     save_board(board)
     return board

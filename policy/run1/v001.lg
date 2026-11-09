@@ -1,4 +1,4 @@
-# Policy version 1 (written by hand, the baseline the agent must beat)
+# Policy version 1 (the starting baseline the agent must beat, written by Claude Code before the loop existed)
 
 # During a grid event, pause as much batch work as the grid asks for, up to all of it.
 # Never move work to another site.

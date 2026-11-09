@@ -1,7 +1,7 @@
 [
   {
     "version": 1,
-    "author": "hand",
+    "author": "Claude Code (baseline, before the loop)",
     "parent": null,
     "breakdown": {
       "committed_kw": 21.9,

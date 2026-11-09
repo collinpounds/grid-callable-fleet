@@ -11,7 +11,7 @@ fframes on 2026-11-08 for Datacenter.Dev. Every number in it comes from this rep
 | "Thousands of small compute sites could be one resource the grid can call on." | Track 4's framing, from the brief. It states the opportunity and is not a measured number. |
 | Six simulated sites, peaking above the 100 kW FERC Order 2222 minimum | `sim/sites.json`, `README.md` "What is real and what is not" |
 | "In LOGOS, a grid operator can read every rule, and it compiles to a real program." | The dashboard's first card, and `README.md` (LOGOS compiles to Rust, and `policy/build.sh` builds `policy/bin/v021`) |
-| v001's code, "prover found a bug" | `policy/versions/v001.lg` lines 6 to 9, verbatim, and `policy/versions/v001.prove.txt` |
+| "Version 1, the starting baseline", its code, "prover found a bug", "v001, baseline" on the score chart, "The v001 baseline fails rule 1." | `policy/versions/v001.lg` lines 6 to 9, verbatim, and `policy/versions/v001.prove.txt` |
 | v021's `moveFor`, "proven safe" | `policy/versions/v021.lg` lines 46 to 52, verbatim, and `policy/prove-all.log` |
 | v021's `pauseFor` event branch | `policy/versions/v021.lg` lines 26 to 34, verbatim |
 | "If the other site has room, move the work. Otherwise, pause it." and the line notes | The dashboard's note on the policy card, and the comments at the top of `policy/versions/v021.lg` |

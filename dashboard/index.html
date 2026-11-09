@@ -114,7 +114,7 @@ details.hood > summary { font-size: 15px; font-weight: 600; color: var(--ink); m
     <div class="card"><div class="t">Claude writes the grid policy</div><div class="n">English → Rust</div>
       <p>In LOGOS, a grid operator can read every rule, and it compiles to a real program.</p></div>
     <div class="card"><div class="t">Proven safe, not just tested</div><div class="n" id="w-proven">22 of 22 proven</div>
-      <p>Each version is proven safe for every possible input. The prover even caught a bug in our own hand-written version.</p></div>
+      <p>Each version is proven safe for every possible input. The prover even caught a bug in the baseline we started from.</p></div>
     <div class="card"><div class="t">It improves itself</div><div class="n" id="w-score">255 → 719</div>
       <p id="w-score-d">Claude rewrote its own policy 21 times on a real California grid day.</p></div>
   </div>
@@ -138,7 +138,7 @@ details.hood > summary { font-size: 15px; font-weight: 600; color: var(--ink); m
       <h2>The policy is the product, and you can read it</h2>
       <p class="note">Highlighted lines make the call: if the other site has room, move the work, otherwise pause it.</p>
       <div class="cols">
-        <div><div class="legend"><b>Version 1, written by a human</b><span class="badge bad" id="first-badge">✗ prover found a bug</span></div><pre id="src-first"></pre></div>
+        <div><div class="legend"><b>Version 1, the starting baseline</b><span class="badge bad" id="first-badge">✗ prover found a bug</span></div><pre id="src-first"></pre></div>
         <div><div class="legend"><b id="best-h">Best, written by Claude</b><span class="badge goodb">✓ proven safe</span></div><pre id="src-best"></pre></div>
       </div>
     </section>

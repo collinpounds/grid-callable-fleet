@@ -36,7 +36,7 @@ calls an event you can watch their power drop.
 
 **The agent improves over the run** (`policy/leaderboard.json`, same replayed day for every version):
 
-| | v001, written by hand | v021, Claude's best |
+| | v001, the starting baseline | v021, Claude's best |
 | --- | --- | --- |
 | Score | 255.5 | 718.9 |
 | Carbon over the day | 491.1 kg | 402.2 kg (18 percent less) |
@@ -44,12 +44,14 @@ calls an event you can watch their power drop.
 | Batch work missed | 20.5 kWh | 0 |
 | Proven safe | **No** | Yes |
 
-- Claude's first version (v002) already scored 665.6. It found "elastic bursting" on its own: move work out of
+- v001 is a deliberately simple starting baseline: pause what the grid asks for, nothing else. Claude Code wrote it
+  directly, before the improvement loop existed. No human wrote any of the policies.
+- Claude's first version in the loop (v002) already scored 665.6. It found "elastic bursting" on its own: move work out of
   the event zone instead of only pausing it.
 - Later versions learned to shift batch work into clean, cheap midday solar hours and to catch up before the
   deadline. The policy's own `#` comments explain each change (`policy/versions/`).
-- All 22 versions Claude wrote are proven safe, each in 6 to 37 seconds. **The version written by hand is the
-  only one that fails.** The prover found that a negative grid target makes it return a negative pause. The
+- All 22 versions Claude wrote in the loop are proven safe, each in 6 to 37 seconds. **The starting baseline is
+  the only one that fails.** The prover found that a negative grid target makes it return a negative pause. The
   simulator never sends one, so testing never caught it.
 - To check the prover isn't passing everything, we planted a bug in v021 that overshoots its power limit by one
   watt, but only above 1,000,000 W, which the simulator never reaches. The prover rejected rule 4 and named the
