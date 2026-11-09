@@ -1,0 +1,10 @@
+{
+  "_note": "SYNTHETIC demand response event (DAT-229), shaped after an OpenADR 3 event object but not produced by a certified server. The grid day under it is real CAISO data for 2026-11-07, which had no real event.",
+  "programName": "Bay Area evening peak relief",
+  "eventName": "np15-shed-2026-11-07-1700",
+  "zone": "np15",
+  "intervalPeriod": {"start_minute": 1020, "duration_minutes": 180},
+  "shed_pct": 35,
+  "ramp_minutes": 10,
+  "payloadDescriptors": [{"payloadType": "LOAD_SHED_PERCENT", "units": "percent of baseline at event start"}]
+}

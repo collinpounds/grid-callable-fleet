@@ -1,0 +1,28 @@
+## To native parseInt (s: Text) -> Int
+
+## A Situation has:
+    A minute: Int.
+    A site: Int.
+    A price: Int.
+    A carbon: Int.
+    An event: Int.
+    A target: Int.
+    An urgent: Int.
+    A batch: Int.
+    A backlog: Int.
+    A left: Int.
+    A room: Int.
+    An otherPrice: Int.
+    An otherInEvent: Int.
+    An ownRoom: Int.
+
+## To minOf (a: Int, b: Int) -> Int:
+    If a is less than b:
+        Return a.
+    Return b.
+
+## To maxOf (a: Int, b: Int) -> Int:
+    If a is greater than b:
+        Return a.
+    Return b.
+

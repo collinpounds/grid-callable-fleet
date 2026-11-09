@@ -1,0 +1,142 @@
+## To native parseInt (s: Text) -> Int
+
+## A Situation has:
+    A minute: Int.
+    A site: Int.
+    A price: Int.
+    A carbon: Int.
+    An event: Int.
+    A target: Int.
+    An urgent: Int.
+    A batch: Int.
+    A backlog: Int.
+    A left: Int.
+    A room: Int.
+    An otherPrice: Int.
+    An otherInEvent: Int.
+    An ownRoom: Int.
+
+## To minOf (a: Int, b: Int) -> Int:
+    If a is less than b:
+        Return a.
+    Return b.
+
+## To maxOf (a: Int, b: Int) -> Int:
+    If a is greater than b:
+        Return a.
+    Return b.
+
+# Policy version 16
+# What it does:
+# During a grid event, batch work first moves to the best other site, if that site is
+# outside the event zone and has spare room. Any part of the requested cut that cannot
+# be moved is paused. Together they deliver the full cut at once. This is unchanged.
+# Outside events, batch work is shifted toward clean, cheap midday solar hours:
+#   (a) Before 9am with dirty power (carbon 250 or more), batch work is paused. It is only
+#       paused if the site could still catch up with spare power in the 9am to 4pm window.
+#       If the site falls too far behind before 9am, it catches up at once.
+#   (b) From 9am to 4pm the site runs extra batch work, spread over the window so the
+#       day's work is done by about 3pm. It runs more in the cleanest and cheapest
+#       intervals.
+#   (c) After 4pm the site catches up right away if it cannot finish by midnight. It also
+#       finishes early if power is clean or cheap before 6pm.
+# What changed from version 15:
+#   - Raising the overnight pause budget has improved the score every time, so version 16
+#     raises it again: from 42 to 48 intervals of spare power. The catch-up trigger rises
+#     from 46 to 52 to match. The 9am to 3pm catch-up period has about 72 intervals of
+#     spare power, so the deadline still has a safety margin of about 20 intervals.
+# No boosting ever happens at a site inside an active event.
+# Every value is clamped so it is never negative and never exceeds batch, room or ownRoom.
+
+## To pauseFor (s: Situation) -> Int:
+    If s's event equals 1:
+        Let mutable m be 0.
+        If s's otherInEvent equals 0:
+            Set m to minOf(minOf(s's target, s's batch), s's room).
+            Set m to maxOf(m, 0).
+        Let rest be maxOf(s's target - m, 0).
+        Let avail be maxOf(s's batch - m, 0).
+        Return maxOf(minOf(rest, avail), 0).
+    # Morning shift: pause dirty work before 9am only if the solar window can absorb it.
+    If s's minute is less than 540 and s's carbon is greater than 249 and s's batch is greater than 0:
+        Let nextLeft be s's left - 1.
+        Let nextPlan be s's batch * nextLeft.
+        Let after be s's backlog - nextPlan.
+        Let room48 be maxOf(s's ownRoom, 0) * 48.
+        If after is less than room48:
+            Return maxOf(s's batch, 0).
+        Return 0.
+    Return 0.
+
+## To moveFor (s: Situation) -> Int:
+    If s's event equals 1:
+        If s's otherInEvent equals 0:
+            Let m be minOf(minOf(s's target, s's batch), s's room).
+            Return maxOf(m, 0).
+        Return 0.
+    Return 0.
+
+## To boostFor (s: Situation) -> Int:
+    If s's event equals 1:
+        Return 0.
+    If s's backlog is less than 1:
+        Return 0.
+    If s's ownRoom is less than 1:
+        Return 0.
+    Let cap be maxOf(s's ownRoom, 0).
+    Let plan be s's batch * s's left.
+    Let deficit be s's backlog - plan.
+    # Before 9am: only catch up if too far behind, or boost if power is very clean.
+    If s's minute is less than 540:
+        Let safe be cap * 52.
+        If deficit is greater than safe:
+            Let over be deficit - safe.
+            Return maxOf(minOf(over, cap), 0).
+        If s's carbon is less than 200:
+            Let gapA be 960 - s's minute.
+            Let rA be gapA / 5.
+            Let keepA be s's batch * rA.
+            Let extraA be s's backlog - keepA.
+            Return maxOf(minOf(extraA, cap), 0).
+        Return 0.
+    # 9am to 4pm: spread extra work so the day's work is done by about 3pm.
+    If s's minute is less than 960:
+        Let gapB be 960 - s's minute.
+        Let rB be gapB / 5.
+        Let keepB be s's batch * rB.
+        Let extraB be s's backlog - keepB.
+        If extraB is less than 1:
+            Return 0.
+        # Free or negative-price power: use all spare power.
+        If s's price is less than 1:
+            Return maxOf(minOf(extraB, cap), 0).
+        Let spread be maxOf(rB - 12, 1).
+        Let mutable want be extraB / spread + 1.
+        # Very clean power: run twice the even rate.
+        If s's carbon is less than 150:
+            Set want to want * 2.
+        Return maxOf(minOf(minOf(want, extraB), cap), 0).
+    # After 4pm: catch up at once if midnight is at risk.
+    If deficit is greater than 0:
+        Return maxOf(minOf(deficit, cap), 0).
+    If s's carbon is less than 200:
+        Return maxOf(minOf(s's backlog, cap), 0).
+    If s's minute is less than 1080 and s's price is less than 1500:
+        Return maxOf(minOf(s's backlog, cap), 0).
+    Return 0.
+
+## Theorem: Rule_1_Every_Amount_Is_Nonnegative
+Prove: For all s, pauseFor(s) is at least 0 and moveFor(s) is at least 0 and boostFor(s) is at least 0.
+Proof: omega.
+
+## Theorem: Rule_2_Pause_Plus_Move_Fits_The_Batch
+Prove: For all s, if s's batch is at least 0 then pauseFor(s) plus moveFor(s) is at most s's batch.
+Proof: omega.
+
+## Theorem: Rule_3_Move_Fits_The_Other_Room
+Prove: For all s, if s's room is at least 0 then moveFor(s) is at most s's room.
+Proof: omega.
+
+## Theorem: Rule_4_Boost_Fits_The_Own_Room
+Prove: For all s, if s's ownRoom is at least 0 then boostFor(s) is at most s's ownRoom.
+Proof: omega.

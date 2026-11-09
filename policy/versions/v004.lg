@@ -1,0 +1,78 @@
+# Policy version 4
+# What it does:
+# During a grid event, first move batch work to the best other site if that site is
+# outside the event zone and has spare room. Moved work still gets done, so the
+# deadline is not put at risk. Whatever part of the requested cut cannot be moved
+# is paused. Together, moving and pausing deliver the full cut at once.
+# Outside events, run batch work faster in two cases:
+#   (a) The site is behind schedule and cannot finish by midnight at the usual rate.
+#       It catches up as fast as its power limit allows.
+#   (b) Power is likely clean or cheap. The site builds extra slack, capped so that
+#       batch work is still left to pause or move when an evening event arrives.
+# What changed from version 2:
+# Event handling is unchanged, because v2's full moving beat v3's partial moving.
+# Clean-hour boosting now favors the cleanest intervals. In core solar hours
+# (10am to 3pm) with low carbon, or whenever carbon is very low, the site may use all
+# of its spare power instead of half. In the early shoulder hour (9am to 10am) the
+# site boosts at only a quarter of its spare power unless carbon is low. This saves
+# the slack budget for cleaner midday power instead of using it up early.
+# The total amount of slack built is the same as in v2, so evening events still have
+# batch work to cut.
+# No boosting ever happens at a site inside an active event.
+# Every value is clamped so it is never negative and never exceeds batch, room or ownRoom.
+
+## To pauseFor (s: Situation) -> Int:
+    If s's event equals 1:
+        Let mutable m be 0.
+        If s's otherInEvent equals 0:
+            Set m to minOf(minOf(s's target, s's batch), s's room).
+            Set m to maxOf(m, 0).
+        Let rest be maxOf(s's target - m, 0).
+        Let avail be maxOf(s's batch - m, 0).
+        Return maxOf(minOf(rest, avail), 0).
+    Return 0.
+
+## To moveFor (s: Situation) -> Int:
+    If s's event equals 1:
+        If s's otherInEvent equals 0:
+            Let m be minOf(minOf(s's target, s's batch), s's room).
+            Return maxOf(m, 0).
+        Return 0.
+    Return 0.
+
+## To boostFor (s: Situation) -> Int:
+    If s's event equals 1:
+        Return 0.
+    If s's backlog is less than 1:
+        Return 0.
+    If s's ownRoom is less than 1:
+        Return 0.
+    # Catch up if the remaining work cannot finish by midnight at the usual rate.
+    Let plan be s's batch * s's left.
+    Let deficit be s's backlog - plan.
+    If deficit is greater than 0:
+        Return maxOf(minOf(deficit, s's ownRoom), 0).
+    # Level 0 means no boost, 1 means use half of spare power, 2 means use all of it.
+    Let mutable level be 0.
+    If s's minute is greater than 539 and s's minute is less than 960:
+        Set level to 1.
+    If s's carbon is less than 200:
+        Set level to maxOf(level, 1).
+    If s's minute is greater than 599 and s's minute is less than 900:
+        If s's carbon is less than 200:
+            Set level to 2.
+    If s's carbon is less than 150:
+        Set level to 2.
+    If level is greater than 0:
+        Let horizon be maxOf(s's left - 30, 0).
+        Let keep be s's batch * horizon.
+        Let extra be s's backlog - keep.
+        Let mutable cap be s's ownRoom / 2.
+        If level equals 2:
+            Set cap to s's ownRoom.
+        # Early shoulder hour with ordinary carbon: boost gently to save slack for midday.
+        If s's minute is less than 600 and s's carbon is greater than 199:
+            Set cap to s's ownRoom / 4.
+        Set cap to minOf(cap, s's ownRoom).
+        Return maxOf(minOf(extra, cap), 0).
+    Return 0.

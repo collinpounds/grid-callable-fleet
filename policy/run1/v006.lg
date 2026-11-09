@@ -1,0 +1,47 @@
+# Policy version 6
+# What it does:
+# During a grid event, this site sheds the full amount the grid asks for, up to all of its batch work.
+# It first moves as much of that work as it can to another site, if that site is outside the event zone and has spare room.
+# It pauses only the part it could not move.
+# Outside an event, it moves batch work to another site only when power there is much cheaper (under 70 percent of the price here).
+# What changed from version 2:
+# Event behavior and the move rule are unchanged.
+# New: outside an event, when power here is very expensive (over 80 dollars per MWh), the site pauses half of the batch work it did not move.
+# This shifts the work to cheaper and usually cleaner hours later in the day.
+# It only does this when more than 3 hours remain in the day and the site has plenty of time left to catch up.
+# The test is that twice the remaining work is less than what this site could run in the remaining time, minus a 1 hour margin.
+# This guard is meant to keep missed batch work at zero.
+# Safety: every result is at least zero. Moved work never exceeds the receiving site's spare room.
+# Moved plus paused work never exceeds this site's batch work.
+
+## To moveFor (s: Situation) -> Int:
+    Let batch be maxOf(s's batch, 0).
+    Let room be maxOf(s's room, 0).
+    If s's event equals 1:
+        If s's otherInEvent equals 0:
+            Let need be minOf(maxOf(s's target, 0), batch).
+            Return minOf(need, room).
+        Return 0.
+    If s's otherInEvent equals 0 and s's price is greater than 0 and s's otherPrice * 100 is less than s's price * 70:
+        Return minOf(batch, room).
+    Return 0.
+
+## To pauseFor (s: Situation) -> Int:
+    Let batch be maxOf(s's batch, 0).
+    Let room be maxOf(s's room, 0).
+    If s's event equals 1:
+        Let need be minOf(maxOf(s's target, 0), batch).
+        Let mutable moved be 0.
+        If s's otherInEvent equals 0:
+            Set moved to minOf(need, room).
+        Return maxOf(need - moved, 0).
+    Let mutable shifted be 0.
+    If s's otherInEvent equals 0 and s's price is greater than 0 and s's otherPrice * 100 is less than s's price * 70:
+        Set shifted to minOf(batch, room).
+    Let rest be maxOf(batch - shifted, 0).
+    Let work be maxOf(s's backlog, 0) + batch.
+    Let spare be maxOf(s's left - 12, 0).
+    Let capacity be batch * spare.
+    If rest is greater than 0 and s's left is greater than 36 and s's price is greater than 8000 and work * 2 is less than capacity:
+        Return rest / 2.
+    Return 0.

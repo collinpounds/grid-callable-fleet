@@ -1,0 +1,36 @@
+# Policy version 3
+# What it does:
+# During a grid event, this site sheds the full amount the grid asks for, up to all of its batch work.
+# It first moves as much of that work as it can to another site that is outside the event zone and has spare room.
+# It pauses only the part it could not move.
+# Outside an event, it never pauses work. It moves batch work to another site only when that site's power is clearly cheaper.
+# What changed from version 2:
+# The price rule for moving work outside an event is looser. Version 2 moved only below 70 percent of the local price.
+# Version 3 moves below 85 percent. Moved work costs 5 percent extra, so 85 percent still leaves a real saving.
+# The goal is a lower energy bill. The event cut, the response time and on-time batch work should not change.
+# It still pauses only during an event. Version 1 showed that extra pausing makes work miss its deadline.
+# It still never moves work into a site that is also inside the event, because that would undo the cut for the grid.
+# Safety: every result is at least zero. Moved work never exceeds the receiving site's spare room.
+# Moved plus paused work never exceeds this site's batch work.
+
+## To moveFor (s: Situation) -> Int:
+    Let batch be maxOf(s's batch, 0).
+    Let room be maxOf(s's room, 0).
+    If s's event equals 1:
+        If s's otherInEvent equals 0:
+            Let need be minOf(maxOf(s's target, 0), batch).
+            Return minOf(need, room).
+        Return 0.
+    If s's otherInEvent equals 0 and s's price is greater than 0 and s's otherPrice * 100 is less than s's price * 85:
+        Return minOf(batch, room).
+    Return 0.
+
+## To pauseFor (s: Situation) -> Int:
+    If s's event equals 1:
+        Let batch be maxOf(s's batch, 0).
+        Let need be minOf(maxOf(s's target, 0), batch).
+        Let mutable moved be 0.
+        If s's otherInEvent equals 0:
+            Set moved to minOf(need, maxOf(s's room, 0)).
+        Return maxOf(need - moved, 0).
+    Return 0.

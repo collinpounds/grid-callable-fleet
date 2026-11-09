@@ -1,0 +1,89 @@
+# Policy version 3
+# What it does:
+# During a grid event, the site delivers the full requested cut at once, in this order:
+#   1. Pause work, but only up to the spare time the site already has before midnight.
+#      It always keeps one hour of safety margin, so paused work still finishes on time.
+#      Pausing avoids the 5 percent extra work of moving. It also pushes that work out
+#      of the expensive evening peak.
+#   2. Move work to the best other site, if that site is outside the event zone and has room.
+#   3. Pause whatever part of the cut is still left, as before.
+# Outside events, the site runs batch work faster in two cases:
+#   (a) It is behind schedule. It catches up as fast as its power limit allows.
+#   (b) Power is likely clean or cheap. That means midday solar hours (9am to 4pm),
+#       low carbon, or a low price. The site builds up to about 150 minutes of extra
+#       spare time. When power is clearly clean or cheap, it uses all of its spare power.
+#       Otherwise it uses half. Some batch work is always kept back for evening events.
+# What changed from version 2:
+# Version 2 always moved work first, even when the site had spare time.
+# Version 3 uses that spare time to pause first, so less work is moved.
+# This cuts the extra work and the energy cost. Boosting is now faster during clearly
+# clean or cheap hours. A low price now also counts as a cheap hour.
+# The site never boosts while it is inside an active event.
+# Every value is limited so it is never negative and never exceeds batch, room or ownRoom.
+
+## To pauseFor (s: Situation) -> Int:
+    If s's event equals 1:
+        If s's batch is less than 1:
+            Return 0.
+        Let plan be s's batch * s's left.
+        Let slack be plan - s's backlog.
+        Let margin be s's batch * 12.
+        Let budget be maxOf(slack - margin, 0).
+        Let want be maxOf(minOf(s's target, s's batch), 0).
+        Let first be minOf(want, budget).
+        Let mutable m be 0.
+        If s's otherInEvent equals 0:
+            Set m to minOf(want - first, s's room).
+            Set m to maxOf(m, 0).
+        Let rest be maxOf(want - first - m, 0).
+        Return maxOf(first + rest, 0).
+    Return 0.
+
+## To moveFor (s: Situation) -> Int:
+    If s's event equals 1:
+        If s's batch is less than 1:
+            Return 0.
+        If s's otherInEvent equals 0:
+            Let plan be s's batch * s's left.
+            Let slack be plan - s's backlog.
+            Let margin be s's batch * 12.
+            Let budget be maxOf(slack - margin, 0).
+            Let want be maxOf(minOf(s's target, s's batch), 0).
+            Let first be minOf(want, budget).
+            Let m be minOf(want - first, s's room).
+            Return maxOf(m, 0).
+        Return 0.
+    Return 0.
+
+## To boostFor (s: Situation) -> Int:
+    If s's event equals 1:
+        Return 0.
+    If s's backlog is less than 1:
+        Return 0.
+    If s's ownRoom is less than 1:
+        Return 0.
+    # Catch up if the remaining work cannot finish by midnight at the usual rate.
+    Let plan be s's batch * s's left.
+    Let deficit be s's backlog - plan.
+    If deficit is greater than 0:
+        Return maxOf(minOf(deficit, s's ownRoom), 0).
+    # Build extra spare time during likely clean or cheap hours.
+    Let mutable clean be 0.
+    Let mutable strong be 0.
+    If s's minute is greater than 539 and s's minute is less than 960:
+        Set clean to 1.
+    If s's carbon is less than 200:
+        Set clean to 1.
+        Set strong to 1.
+    If s's price is less than 2000 and s's carbon is less than 300:
+        Set clean to 1.
+        Set strong to 1.
+    If clean equals 1:
+        Let horizon be maxOf(s's left - 30, 0).
+        Let keep be s's batch * horizon.
+        Let extra be s's backlog - keep.
+        Let mutable cap be s's ownRoom / 2.
+        If strong equals 1:
+            Set cap to s's ownRoom.
+        Return maxOf(minOf(extra, cap), 0).
+    Return 0.

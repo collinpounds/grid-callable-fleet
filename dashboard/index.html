@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grid-Callable Fleet</title>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+  --grid: #e1e0d9; --axis: #c3c2b7; --ring: rgba(11,11,11,0.10);
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a;
+  --good: #0ca30c; --serious: #ec835a; --critical: #d03b3b; --good-text: #006300;
+  --band: rgba(236,131,90,0.10);
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --axis: #383835; --ring: rgba(255,255,255,0.10);
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --good-text: #0ca30c; --band: rgba(236,131,90,0.14);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7; --muted: #898781;
+  --grid: #2c2c2a; --axis: #383835; --ring: rgba(255,255,255,0.10);
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --good-text: #0ca30c; --band: rgba(236,131,90,0.14);
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 1280px; margin: 0 auto; padding: 20px 16px 48px; }
+header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+h1 { font-size: 24px; margin: 0; letter-spacing: -0.01em; }
+.sub { color: var(--ink-2); margin: 2px 0 0; }
+h2 { font-size: 15px; margin: 0 0 2px; }
+.note { color: var(--muted); font-size: 12px; margin: 0 0 10px; }
+.grid { display: grid; gap: 14px; grid-template-columns: repeat(12, 1fr); }
+.card { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 14px 16px; min-width: 0; }
+.span-12 { grid-column: span 12; } .span-8 { grid-column: span 8; } .span-7 { grid-column: span 7; }
+.span-6 { grid-column: span 6; } .span-5 { grid-column: span 5; } .span-4 { grid-column: span 4; }
+@media (max-width: 900px) { .span-8, .span-7, .span-6, .span-5, .span-4 { grid-column: span 12; } }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 10px; }
+.tile { border: 1px solid var(--ring); border-radius: 8px; padding: 10px 12px; }
+.tile .k { color: var(--ink-2); font-size: 12px; }
+.tile .v { font-size: 26px; font-weight: 600; letter-spacing: -0.01em; }
+.tile .d { color: var(--muted); font-size: 12px; }
+button { font: inherit; font-weight: 600; border: 0; border-radius: 8px; padding: 10px 16px; cursor: pointer;
+  background: var(--critical); color: #fff; }
+button:disabled { opacity: 0.5; cursor: default; }
+.pill { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--ring); border-radius: 999px;
+  padding: 3px 10px; font-size: 12px; color: var(--ink-2); }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+svg { display: block; width: 100%; overflow: visible; }
+svg text { fill: var(--muted); font-size: 11px; font-family: inherit; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--ink-2); margin: 4px 0 6px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 14px; height: 3px; border-radius: 2px; display: inline-block; }
+.sw.dash { background: repeating-linear-gradient(90deg, var(--muted) 0 4px, transparent 4px 7px) !important; }
+.chart-wrap { position: relative; }
+.tip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--ring);
+  border-radius: 8px; padding: 8px 10px; font-size: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  color: var(--ink); white-space: nowrap; display: none; z-index: 2; }
+.tip b { font-weight: 600; } .tip .r { display: flex; align-items: center; gap: 6px; color: var(--ink-2); }
+pre { margin: 0; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap;
+  background: var(--page); border: 1px solid var(--ring); border-radius: 8px; padding: 10px; max-height: 420px; overflow: auto; }
+pre .c { color: var(--ink-2); }
+pre details summary { margin: 0 0 6px; }
+pre { max-height: 560px; }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 900px) { .cols { grid-template-columns: 1fr; } }
+.log { font: 12px/1.5 ui-monospace, Menlo, monospace; color: var(--ink-2); white-space: pre-wrap; margin-top: 8px; min-height: 18px; }
+.ok { color: var(--good-text); font-weight: 600; }
+table { border-collapse: collapse; width: 100%; font-size: 12px; font-variant-numeric: tabular-nums; }
+th, td { text-align: right; padding: 4px 8px; border-bottom: 1px solid var(--grid); }
+th:first-child, td:first-child { text-align: left; }
+th { color: var(--ink-2); font-weight: 600; }
+details summary { cursor: pointer; color: var(--ink-2); font-size: 12px; margin-top: 8px; }
+.hero { padding: 28px 0 18px; }
+.kicker { color: var(--muted); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; margin: 0 0 10px; }
+.hero h1 { font-size: clamp(28px, 4.4vw, 52px); line-height: 1.08; letter-spacing: -0.025em; margin: 0; max-width: 1050px; }
+.hero h1 .big { color: var(--s3); }
+.hero .sub { font-size: clamp(15px, 1.6vw, 19px); color: var(--ink-2); margin: 14px 0 20px; max-width: 900px; }
+.actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.btn2 { background: var(--ink); color: var(--page); }
+.why { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 8px 0 14px; }
+@media (max-width: 900px) { .why { grid-template-columns: 1fr; } }
+.why .card .n { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; margin: 2px 0 4px; }
+.why .card .t { font-weight: 600; font-size: 15px; }
+.why .card p { margin: 4px 0 0; color: var(--ink-2); }
+.tile.hero-tile { border-color: var(--s3); }
+.tile.hero-tile .v { color: var(--s3); font-size: 34px; }
+.badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; border-radius: 999px; padding: 3px 10px; margin-left: 8px; }
+.badge.bad { color: var(--critical); border: 1px solid var(--critical); }
+.badge.goodb { color: var(--good-text); border: 1px solid var(--good-text); }
+pre .hl { background: rgba(27,175,122,0.16); display: inline-block; width: 100%; border-radius: 3px; }
+details.hood > summary { font-size: 15px; font-weight: 600; color: var(--ink); margin: 6px 0 12px; }
+</style>
+</head>
+<body>
+<main>
+  <section class="hero">
+    <p class="kicker">SF × MIT Energy Hack · Track 4 · aggregate distributed compute</p>
+    <h1>When the grid calls, our compute fleet cuts its power <span class="big" id="h-pct">by a quarter</span> in <span class="big" id="h-s">seconds</span>.</h1>
+    <p class="sub">Claude wrote the policy that decides it. The policy is in plain English that compiles. It was proven safe before it touched a machine.</p>
+    <div class="actions">
+      <button id="fire-sw" data-scope="statewide">⚡ Grid emergency: cut power</button>
+      <button id="fire" data-scope="zone" class="btn2">Bay Area only: move the work</button>
+      <span class="pill" id="status"><span class="dot" style="background:var(--muted)"></span>idle</span>
+    </div>
+  </section>
+
+  <div class="why">
+    <div class="card"><div class="t">Claude writes the grid policy</div><div class="n">English → Rust</div>
+      <p>In LOGOS, a grid operator can read every rule, and it compiles to a real program.</p></div>
+    <div class="card"><div class="t">Proven safe, not just tested</div><div class="n" id="w-proven">22 of 22 proven</div>
+      <p>Each version is proven safe for every possible input. The prover even caught a bug in our own hand-written version.</p></div>
+    <div class="card"><div class="t">It improves itself</div><div class="n" id="w-score">255 → 719</div>
+      <p id="w-score-d">Claude rewrote its own policy 21 times on a real California grid day.</p></div>
+  </div>
+
+  <div class="grid">
+    <section class="card span-12">
+      <h2>Live: two real computers answer the grid</h2>
+      <p class="note">The grid event is scripted. The machines and their watts are real, measured every second.</p>
+      <div class="tiles">
+        <div class="tile hero-tile"><div class="k">Fleet power</div><div class="v" id="t-fleet">–</div><div class="d" id="t-fleet-d">both machines</div></div>
+        <div class="tile"><div class="k">Grid asked, we delivered</div><div class="v" id="t-deliv">–</div><div class="d" id="t-deliv-d">from the Bay Area machine</div></div>
+        <div class="tile"><div class="k">Response time</div><div class="v" id="t-resp">–</div><div class="d">event to cut</div></div>
+        <div class="tile"><div class="k">Work lost</div><div class="v" id="t-lost">–</div><div class="d" id="t-lost-d">&nbsp;</div></div>
+      </div>
+      <div class="legend" id="lg-live"></div>
+      <div class="chart-wrap"><svg id="c-live" height="240"></svg><div class="tip"></div></div>
+      <details><summary>Technical log</summary><div class="log" id="livelog"></div></details>
+    </section>
+
+    <section class="card span-12">
+      <h2>The policy is the product, and you can read it</h2>
+      <p class="note">Highlighted lines make the call: if the other site has room, move the work, otherwise pause it.</p>
+      <div class="cols">
+        <div><div class="legend"><b>Version 1, written by a human</b><span class="badge bad" id="first-badge">✗ prover found a bug</span></div><pre id="src-first"></pre></div>
+        <div><div class="legend"><b id="best-h">Best, written by Claude</b><span class="badge goodb">✓ proven safe</span></div><pre id="src-best"></pre></div>
+      </div>
+    </section>
+
+    <section class="card span-12">
+      <h2>Claude made its own policy better, try after try</h2>
+      <p class="note">Every version replayed on the same real CAISO grid day. Hover a point for details.</p>
+      <div class="tiles" id="improve"></div>
+      <div class="legend" id="lg-score"></div>
+      <div class="chart-wrap"><svg id="c-score" height="230"></svg><div class="tip"></div></div>
+      <details><summary>Table view</summary><div id="t-board"></div></details>
+    </section>
+  </div>
+
+  <details class="hood" id="hood">
+    <summary>Under the hood: the simulated six-site fleet</summary>
+    <div class="grid">
+      <section class="card span-5">
+        <h2>Six simulated sites on real California prices</h2>
+        <svg id="c-map" height="300"></svg>
+        <div class="tiles" style="margin-top:8px">
+          <div class="tile"><div class="k">Fleet peak</div><div class="v" id="t-peak">–</div><div class="d" id="t-peak-d">FERC Order 2222 minimum is up to 100 kW</div></div>
+          <div class="tile"><div class="k">Asked to shed</div><div class="v" id="t-commit">–</div><div class="d">35 percent of the Bay Area sites</div></div>
+        </div>
+      </section>
+      <section class="card span-7">
+        <h2>Bay Area sites during the event</h2>
+        <div class="legend" id="lg-zone"></div>
+        <div class="chart-wrap"><svg id="c-zone" height="240"></svg><div class="tip"></div></div>
+      </section>
+      <section class="card span-12">
+        <h2>The grid signal: real prices, 2026-11-07</h2>
+        <div class="legend" id="lg-price"></div>
+        <div class="chart-wrap"><svg id="c-price" height="220"></svg><div class="tip"></div></div>
+      </section>
+    </div>
+  </details>
+</main>
+<script>
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const NS = "http://www.w3.org/2000/svg";
+const el = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+const hhmm = m => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+const esc = s => s.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]);
+
+function niceMax(v) { if (v <= 0) return 1; const p = Math.pow(10, Math.floor(Math.log10(v))); for (const m of [1, 2, 2.5, 5, 10]) if (m * p >= v) return m * p; return 10 * p; }
+
+// Line chart with recessive axes, an optional shaded band, dashed reference lines, and a crosshair tooltip.
+function lineChart(svg, { series, xMin, xMax, yMin = 0, yMax, xFmt, yFmt, band, refs = [], markers = false, xTicks }) {
+  svg.innerHTML = "";
+  const W = svg.clientWidth || 600, H = +svg.getAttribute("height");
+  const m = { l: 44, r: 12, t: 8, b: 24 }, iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const all = series.flatMap(s => s.points.map(p => p.y)).concat(refs.map(r => r.y));
+  let lo = Math.min(yMin, ...all), hi = yMax ?? Math.max(...all, 1) * 1.05;
+  const step = niceMax((hi - lo) / 4);
+  lo = Math.floor(lo / step) * step;
+  const nTicks = Math.max(1, Math.ceil((hi - lo) / step));
+  yMin = lo; yMax = yMax ?? lo + nTicks * step;
+  const X = x => m.l + (x - xMin) / (xMax - xMin || 1) * iw, Y = y => m.t + ih - (y - yMin) / (yMax - yMin || 1) * ih;
+  if (band) {
+    el("rect", { x: X(band.x0), y: m.t, width: Math.max(0, X(band.x1) - X(band.x0)), height: ih, fill: css("--band") }, svg);
+    const t = el("text", { x: X(band.x0) + 4, y: m.t + 12 }, svg); t.textContent = band.label;
+  }
+  const tickN = Math.round((yMax - yMin) / step) <= 8 ? Math.round((yMax - yMin) / step) : 4;
+  for (let i = 0; i <= tickN; i++) {
+    const v = yMin + (yMax - yMin) * i / tickN, y = Y(v);
+    el("line", { x1: m.l, x2: m.l + iw, y1: y, y2: y, stroke: Math.abs(v) < 1e-9 || i === 0 ? css("--axis") : css("--grid"), "stroke-width": 1 }, svg);
+    const t = el("text", { x: m.l - 6, y: y + 4, "text-anchor": "end" }, svg); t.textContent = yFmt(v);
+  }
+  (xTicks || []).forEach(x => { const t = el("text", { x: X(x), y: H - 6, "text-anchor": "middle" }, svg); t.textContent = xFmt(x); });
+  refs.forEach(r => {
+    el("line", { x1: m.l, x2: m.l + iw, y1: Y(r.y), y2: Y(r.y), stroke: css("--muted"), "stroke-width": 1.5, "stroke-dasharray": "4 3" }, svg);
+    const t = el("text", { x: m.l + iw - 4, y: Y(r.y) - 5, "text-anchor": "end" }, svg); t.textContent = r.label;
+  });
+  series.forEach(s => {
+    if (!s.points.length) return;
+    const d = s.points.map((p, i) => `${i ? "L" : "M"}${X(p.x).toFixed(1)},${Y(p.y).toFixed(1)}`).join("");
+    el("path", { d, fill: "none", stroke: s.color, "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round", "stroke-dasharray": s.dash ? "4 3" : "" }, svg);
+    if (markers) s.points.forEach(p => el("circle", { cx: X(p.x), cy: Y(p.y), r: 4.5, fill: p.hollow ? css("--surface") : s.color, stroke: p.hollow ? css("--critical") : css("--surface"), "stroke-width": 2 }, svg));
+  });
+  // hover layer
+  const tip = svg.parentElement.querySelector(".tip");
+  const cross = el("line", { y1: m.t, y2: m.t + ih, stroke: css("--axis"), "stroke-width": 1, visibility: "hidden" }, svg);
+  const hit = el("rect", { x: m.l, y: m.t, width: iw, height: ih, fill: "transparent" }, svg);
+  const xs = [...new Set(series.flatMap(s => s.points.map(p => p.x)))].sort((a, b) => a - b);
+  hit.addEventListener("mousemove", ev => {
+    const r = svg.getBoundingClientRect(), px = ev.clientX - r.left;
+    const xv = xMin + (px - m.l) / iw * (xMax - xMin);
+    let best = xs[0]; for (const x of xs) if (Math.abs(x - xv) < Math.abs(best - xv)) best = x;
+    cross.setAttribute("x1", X(best)); cross.setAttribute("x2", X(best)); cross.setAttribute("visibility", "visible");
+    const rows = series.map(s => { const p = s.points.find(q => q.x === best); return p ? `<div class="r"><span class="sw" style="background:${s.color}"></span>${esc(s.name)} <b style="margin-left:auto;padding-left:10px">${p.label ?? yFmt(p.y)}</b></div>` : ""; }).join("");
+    const extra = series.map(s => s.points.find(q => q.x === best)).find(p => p && p.detail)?.detail || "";
+    tip.innerHTML = `<b>${xFmt(best)}</b>${rows}${extra}`;
+    tip.style.display = "block";
+    const tx = Math.min(X(best) + 12, W - tip.offsetWidth - 4);
+    tip.style.left = `${Math.max(0, tx)}px`; tip.style.top = `${m.t}px`;
+  });
+  hit.addEventListener("mouseleave", () => { tip.style.display = "none"; cross.setAttribute("visibility", "hidden"); });
+}
+
+function legend(id, items) {
+  document.getElementById(id).innerHTML = items.map(i => `<span><span class="sw ${i.dash ? "dash" : ""}" style="background:${i.color}"></span>${esc(i.name)}</span>`).join("");
+}
+
+function srcHtml(s) { return esc(s).split("\n").map(l => l.trim().startsWith("#") && !l.startsWith("##") ? `<span class="c">${l}</span>` : /otherInEvent|s's room\)/.test(l) ? `<span class="hl">${l}</span>` : l).join("\n"); }
+
+// Before and during fleet watts, and seconds to the settled cut, from one live run's rows.
+function summarize(raw) {
+  const rows = raw.map(r => ({ t: +r.t, phase: r.phase, fleet: (r.fleet_mw ? +r.fleet_mw : +r.shed_mw + +r.recv_mw) / 1000, deliv: +r.delivered_mw / 1000 }));
+  const ev = rows.filter(r => r.phase === "event"), pre = rows.filter(r => r.phase === "baseline" && r.t > 5);
+  if (!ev.length || !pre.length) return null;
+  const mean = (a, k) => a.reduce((x, r) => x + r[k], 0) / Math.max(a.length, 1);
+  const before = mean(pre, "fleet"), during = mean(ev.slice(4), "fleet"), avg = mean(ev.slice(2), "deliv");
+  const hit = ev.find(r => r.deliv >= 0.9 * avg);
+  return { before, during, pct: Math.round(100 * (during - before) / before), resp: hit ? Math.max(1, Math.round(hit.t - ev[0].t)) : null };
+}
+
+function renderLive(st) {
+  const rows = st.live.map(r => ({ t: +r.t, phase: r.phase, shed: +r.shed_mw / 1000, recv: +r.recv_mw / 1000, base: +r.baseline_mw / 1000, target: +r.target_mw / 1000, deliv: +r.delivered_mw / 1000, sw: +r.shed_workers, rw: +r.recv_workers, fleet: r.fleet_mw !== undefined && r.fleet_mw !== "" ? +r.fleet_mw / 1000 : (+r.shed_mw + +r.recv_mw) / 1000, scope: r.scope || "zone" }));
+  const ev = rows.filter(r => r.phase === "event");
+  const s1 = css("--s1"), s2 = css("--s2"), s3 = css("--s3");
+  legend("lg-live", [{ name: "fleet total", color: s3 }, { name: "Bay Area machine", color: s1 }, { name: "machine outside the Bay Area", color: s2 }, { name: "the grid's limit for the Bay Area machine", color: css("--muted"), dash: true }]);
+  const xMax = Math.max(60, ...rows.map(r => r.t));
+  const band = ev.length ? { x0: ev[0].t, x1: ev[ev.length - 1].t, label: "grid event" } : null;
+  const base = ev.length ? ev[0].base : 0, target = ev.length ? ev[0].target : 0;
+  lineChart(document.getElementById("c-live"), {
+    series: [
+      { name: "Bay Area machine", color: s1, points: rows.map(r => ({ x: r.t, y: r.shed, label: `${r.shed.toFixed(1)} W, ${r.sw} workers` })) },
+      { name: "machine outside the Bay Area", color: s2, points: rows.map(r => ({ x: r.t, y: r.recv, label: `${r.recv.toFixed(1)} W, ${r.rw} workers` })) },
+      { name: "fleet total", color: s3, points: rows.map(r => ({ x: r.t, y: r.fleet, label: `${r.fleet.toFixed(1)} W` })) },
+    ],
+    xMin: 0, xMax, yMax: 22, xFmt: x => `${Math.round(x)} s`, yFmt: v => `${v.toFixed(0)} W`, band,
+    refs: ev.length ? [{ y: base - target, label: `${(base - target).toFixed(1)} W` }] : [],
+    xTicks: [0, Math.round(xMax / 4), Math.round(xMax / 2), Math.round(3 * xMax / 4), Math.round(xMax)],
+  });
+  if (ev.length) {
+    const settled = ev.slice(2);
+    const avg = settled.reduce((a, r) => a + r.deliv, 0) / Math.max(settled.length, 1);
+    const hitT = ev.find(r => r.deliv >= 0.9 * avg);   // how fast the machines reach their settled cut
+    document.getElementById("t-deliv").textContent = `${avg.toFixed(1)} of ${target.toFixed(1)} W`;
+    document.getElementById("t-deliv-d").textContent = `${Math.round(100 * avg / target)} percent of the ask, from the Bay Area machine`;
+    document.getElementById("t-resp").textContent = hitT ? `${Math.max(1, Math.round(hitT.t - ev[0].t))} s` : "–";
+    const scope = ev[0].scope;
+    const pre = rows.filter(r => r.phase === "baseline" && r.t > 5);
+    const mean = a => a.reduce((x, r) => x + r.fleet, 0) / Math.max(a.length, 1);
+    const fb = mean(pre), fe = mean(ev.slice(4)), dF = fe - fb;
+    const pc = Math.round(100 * dF / fb);
+    document.getElementById("t-fleet").textContent = `${pc >= 0 ? "+" : "−"}${Math.abs(pc)}%`;
+    document.getElementById("t-fleet-d").textContent = `${fb.toFixed(1)} W → ${fe.toFixed(1)} W` + (scope === "zone" ? ", work moved, not saved" : ", the whole fleet used less");
+    const moved = Math.max(...ev.map(r => r.rw));
+    const pausedW = Math.max(0, ...ev.map(r => 2 - r.sw - r.rw));
+    document.getElementById("t-lost").textContent = "0";
+    document.getElementById("t-lost-d").textContent = scope === "zone"
+      ? `moved to the other machine`
+      : `paused, resumes after the event`;
+  }
+  const status = document.getElementById("status");
+  const phase = rows.length ? rows[rows.length - 1].phase : "idle";
+  const live = st.live_running;
+  status.innerHTML = live ? `<span class="dot" style="background:var(--serious)"></span>${phase === "event" ? "grid event in progress" : "live run: " + phase}` : `<span class="dot" style="background:var(--muted)"></span>${st.live_file ? "last run " + st.live_file.replace("live-", "").replace(".csv", "") : "idle"}`;
+  for (const id of ["fire", "fire-sw"]) document.getElementById(id).disabled = live || st.best == null;
+  document.getElementById("livelog").textContent = (st.live_log || []).join("\n");
+}
+
+function waiting(id, msg) {
+  const svg = document.getElementById(id); svg.innerHTML = "";
+  const t = el("text", { x: 12, y: 28 }, svg); t.textContent = msg;
+  const tip = svg.parentElement.querySelector(".tip"); if (tip) tip.style.display = "none";
+}
+
+function renderScore(st) {
+  const b = st.leaderboard;
+  if (!b.length) { waiting("c-score", "Waiting for the first scored policy..."); document.getElementById("t-board").innerHTML = ""; return; }
+  const s1 = css("--s1");
+  const pts = b.map(e => {
+    const bd = e.breakdown || {}, failed = e.build_error || bd.disqualified;
+    const why = e.build_error ? "did not build" : bd.disqualified ? "broke a safety rule" : "";
+    const detail = failed ? `<div class="r">${esc(why)}</div>` :
+      `<div class="r">delivered ${bd.delivery_accuracy_pct} percent</div><div class="r">missed batch ${bd.missed_batch_kwh} kWh</div><div class="r">moved ${bd.moved_kwh} kWh</div><div class="r">cost $${bd.energy_cost_usd}, carbon ${bd.carbon_kg} kg</div><div class="r">by ${esc(e.author)}</div>` +
+      (e.proved === true ? `<div class="r ok">✓ proven safe with largo prove (${e.prove_seconds} s)</div>` :
+       e.proved === false ? `<div class="r" style="color:var(--critical)">✗ not proven safe, never deployed</div>` : `<div class="r">proof pending</div>`);
+    return { x: e.version, y: failed ? 0 : bd.score, hollow: !!failed, label: failed ? "0" : String(bd.score), detail };
+  });
+  const maxV = Math.max(2, ...pts.map(p => p.x));
+  let run = -Infinity;
+  const bestPts = pts.map(p => { run = Math.max(run, p.y); return { x: p.x, y: run, label: run.toFixed(1) }; });
+  legend("lg-score", [{ name: "every attempt", color: css("--muted") }, { name: "best so far", color: s1 }]);
+  lineChart(document.getElementById("c-score"), {
+    series: [{ name: "attempt", color: css("--muted"), points: pts }, { name: "best so far", color: s1, points: bestPts }], markers: true,
+    xMin: 1, xMax: maxV, xFmt: x => `v${String(Math.round(x)).padStart(3, "0")}`, yFmt: v => v.toFixed(0),
+    xTicks: [...new Set([1, Math.round(maxV / 2), maxV])],
+  });
+  document.getElementById("t-board").innerHTML = `<table><tr><th>Version</th><th>Author</th><th>Score</th><th>Delivered</th><th>Missed kWh</th><th>Moved kWh</th><th>Cost</th><th>Carbon kg</th></tr>` +
+    b.map(e => { const d = e.breakdown || {}; const f = e.build_error ? "did not build" : d.disqualified ? "safety rule" : null;
+      return `<tr><td>v${String(e.version).padStart(3, "0")}</td><td>${esc(e.author || "")}</td><td>${f ? 0 : d.score}</td><td>${f || d.delivery_accuracy_pct + "%"}</td><td>${f ? "" : d.missed_batch_kwh}</td><td>${f ? "" : d.moved_kwh}</td><td>${f ? "" : "$" + d.energy_cost_usd}</td><td>${f ? "" : d.carbon_kg}</td></tr>`; }).join("") + `</table>`;
+  const top = b.find(e => e.version === st.best), v1 = b.find(e => e.version === 1);
+  if (top && v1) {
+    const a = v1.breakdown, z = top.breakdown;
+    const safe = b.filter(e => !e.build_error && !(e.breakdown || {}).disqualified).length;
+    const proved = b.filter(e => e.proved === true).length;
+    const tile = (k, v, d) => `<div class="tile"><div class="k">${k}</div><div class="v">${v}</div><div class="d">${d}</div></div>`;
+    document.getElementById("improve").innerHTML =
+      tile("Carbon over the day", `${z.carbon_kg} kg`, `down from ${a.carbon_kg} kg in v001 (${Math.round(100 * (1 - z.carbon_kg / a.carbon_kg))} percent)`) +
+      tile("Energy cost", "$" + z.energy_cost_usd, "down from $" + a.energy_cost_usd + " in v001") +
+      tile("Batch work missed", `${z.missed_batch_kwh} kWh`, `down from ${a.missed_batch_kwh} kWh in v001`) +
+      tile("Attempts", `${b.length}`, `${safe} passed every safety rule in simulation` + (proved ? `, ${proved} proven with largo prove` : ""));
+  }
+  if (top) {
+    document.getElementById("t-peak").textContent = `${top.breakdown.fleet_peak_kw} kW`;
+    document.getElementById("t-peak-d").innerHTML = top.breakdown.min_size_100kw_met ? `<span class="ok">✓ above</span> the 100 kW FERC Order 2222 minimum` : `below the 100 kW minimum`;
+    document.getElementById("t-commit").textContent = `${top.breakdown.committed_kw} kW`;
+  }
+}
+
+function renderZone(st) {
+  if (st.best == null) { legend("lg-zone", []); waiting("c-zone", "Waiting for the first scored policy..."); return; }
+  const ev = st.event, s1 = css("--s1"), s2 = css("--s2"), mu = css("--muted");
+  const win = r => r.minute >= 900 && r.minute <= 1290;
+  const toPts = (rows, key) => rows.filter(win).map(r => ({ x: r.minute, y: r[key] / 1000, label: `${(r[key] / 1000).toFixed(1)} kW` }));
+  const series = [
+    { name: "if nothing changed", color: mu, dash: true, points: toPts(st.best_series, "baseline_zone_w") },
+    { name: "version 1 (pause only)", color: s2, points: toPts(st.first_series, "policy_zone_w") },
+    { name: `best, v${String(st.best).padStart(3, "0")}`, color: s1, points: toPts(st.best_series, "policy_zone_w") },
+  ];
+  legend("lg-zone", series.map(s => ({ name: s.name, color: s.color, dash: s.dash })));
+  const s0 = ev.intervalPeriod.start_minute;
+  lineChart(document.getElementById("c-zone"), {
+    series, xMin: 900, xMax: 1290, xFmt: hhmm, yFmt: v => `${v.toFixed(0)} kW`,
+    band: { x0: s0, x1: s0 + ev.intervalPeriod.duration_minutes, label: "grid event (synthetic)" }, xTicks: [900, 1020, 1140, 1260],
+  });
+}
+
+function renderPrice(st) {
+  const hubs = [["price_np15", "NP15, Northern California", css("--s1")], ["price_zp26", "ZP26, Central", css("--s2")], ["price_sp15", "SP15, Southern", css("--s3")]];
+  legend("lg-price", hubs.map(([, n, c]) => ({ name: n, color: c })));
+  const ev = st.event, s0 = ev.intervalPeriod.start_minute;
+  lineChart(document.getElementById("c-price"), {
+    series: hubs.map(([k, n, c]) => ({ name: n, color: c, points: st.trace.map(r => ({ x: +r.minute, y: +r[k] / 100, label: `$${(+r[k] / 100).toFixed(2)}/MWh` })) })),
+    xMin: 0, xMax: 1435, xFmt: hhmm, yFmt: v => `$${v.toFixed(0)}`,
+    band: { x0: s0, x1: s0 + ev.intervalPeriod.duration_minutes, label: "event" }, xTicks: [0, 360, 720, 1080, 1435],
+  });
+}
+
+function renderMap(st) {
+  const svg = document.getElementById("c-map"); svg.innerHTML = "";
+  const W = svg.clientWidth || 400, H = +svg.getAttribute("height");
+  const lat = [32.3, 39.0], lon = [-123.0, -116.6];
+  const X = x => 70 + (x - lon[0]) / (lon[1] - lon[0]) * (W - 190), Y = y => 26 + (lat[1] - y) / (lat[1] - lat[0]) * (H - 44);
+  const zone = st.event.zone;
+  // Label placement: Oakland sits next to San Francisco, so their labels go above and below.
+  const place = { "San Francisco": [-12, 16, "end"], "Oakland": [10, -10, "start"] };
+  const lg = el("g", {}, svg);
+  [["▼ in the event zone (Bay Area, NP15)", css("--serious")], ["▲ can receive moved work", css("--good")]].forEach(([txt, c], i) => {
+    el("circle", { cx: 8, cy: 8 + i * 18, r: 5, fill: c }, lg);
+    const t = el("text", { x: 20, y: 12 + i * 18 }, lg); t.textContent = txt; t.setAttribute("style", `fill:${css("--ink-2")}`);
+  });
+  st.sites.forEach(s => {
+    const inZone = s.hub === zone;
+    el("circle", { cx: X(s.lon), cy: Y(s.lat), r: 7, fill: inZone ? css("--serious") : css("--good"), stroke: css("--surface"), "stroke-width": 2 }, svg);
+    const [dx, dy, anchor] = place[s.name] || [12, 4, "start"];
+    const t = el("text", { x: X(s.lon) + dx, y: Y(s.lat) + dy, "text-anchor": anchor }, svg);
+    t.textContent = `${inZone ? "▼" : "▲"} ${s.name}, ${s.hub.toUpperCase()}`;
+    t.setAttribute("style", `fill:${css("--ink-2")}`);
+  });
+}
+
+async function refresh() {
+  try {
+    const st = await (await fetch("/api/state", { cache: "no-store" })).json();
+    renderLive(st); renderScore(st); renderHero(st);
+    if (document.getElementById("hood").open) { renderZone(st); renderPrice(st); renderMap(st); }
+    showSource("src-first", st.first_source, "Notes on this version");
+    showSource("src-best", st.best_source, "Claude's own notes on this version");
+    document.getElementById("best-h").textContent = st.best ? `Version ${st.best}, written by Claude` : "Best, written by Claude";
+    window.__st = st;
+  } catch (e) { document.getElementById("livelog").textContent = "dashboard server not reachable: " + e; }
+}
+for (const id of ["fire", "fire-sw"]) document.getElementById(id).addEventListener("click", async (ev) => {
+  const scope = ev.currentTarget.dataset.scope;
+  for (const b of ["fire", "fire-sw"]) document.getElementById(b).disabled = true;
+  const r = await fetch(`/api/fire?scope=${scope}`, { method: "POST" }); const j = await r.json();
+  document.getElementById("livelog").textContent = j.error || `${scope === "zone" ? "Bay Area" : "statewide"} event: live run started with policy v${String(j.policy).padStart(3, "0")}`;
+});
+function showSource(id, src, label) {
+  const lines = src.split("\n"), i = lines.findIndex(l => l.startsWith("##"));
+  const notes = lines.slice(0, Math.max(i, 0)).filter(l => l.trim()), code = lines.slice(Math.max(i, 0)).join("\n");
+  const box = document.getElementById(id), was = box.querySelector("details")?.open;
+  box.innerHTML = (notes.length ? `<details${was ? " open" : ""}><summary>${label} (${notes.length} lines)</summary><span class="c">${esc(notes.join("\n"))}</span></details>\n` : "") + srcHtml(code);
+}
+function renderHero(st) {
+  const h = summarize(st.live_statewide || []);
+  if (h) {
+    document.getElementById("h-pct").textContent = `by ${Math.abs(h.pct)}%`;
+    if (h.resp) document.getElementById("h-s").textContent = `${h.resp} seconds`;
+  }
+  const b = st.leaderboard, v1 = b.find(e => e.version === 1), top = b.find(e => e.version === st.best);
+  const claude = b.filter(e => e.version !== 1 && !e.build_error), proven = claude.filter(e => e.proved === true).length;
+  if (claude.length) document.getElementById("w-proven").textContent = `${proven} of ${claude.length} proven`;
+  if (v1 && top) {
+    document.getElementById("w-score").textContent = `${v1.breakdown.score} → ${top.breakdown.score}`;
+    const pc = k => Math.round(100 * (1 - top.breakdown[k] / v1.breakdown[k]));
+    document.getElementById("w-score-d").textContent = `Claude rewrote its own policy ${b.length - 1} times on a real California grid day: ${pc("carbon_kg")}% less carbon, ${pc("energy_cost_usd")}% lower cost, no missed work.`;
+  }
+  document.getElementById("first-badge").style.display = v1 && v1.proved === false ? "" : "none";
+}
+document.getElementById("hood").addEventListener("toggle", () => window.__st && document.getElementById("hood").open && (renderZone(__st), renderPrice(__st), renderMap(__st)));
+window.addEventListener("resize", () => window.__st && (renderLive(__st), renderScore(__st), document.getElementById("hood").open && (renderZone(__st), renderPrice(__st), renderMap(__st))));
+refresh(); setInterval(refresh, 1000);
+</script>
+</body>
+</html>

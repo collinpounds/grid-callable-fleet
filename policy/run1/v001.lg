@@ -1,0 +1,12 @@
+# Policy version 1 (written by hand, the baseline the agent must beat)
+
+# During a grid event, pause as much batch work as the grid asks for, up to all of it.
+# Never move work to another site.
+
+## To pauseFor (s: Situation) -> Int:
+    If s's event equals 1:
+        Return minOf(s's target, s's batch).
+    Return 0.
+
+## To moveFor (s: Situation) -> Int:
+    Return 0.

@@ -1,0 +1,6 @@
+Proving policy/proofs/v002.prove.lg
+✓ Rule_1_Every_Amount_Is_Nonnegative
+✓ Rule_2_Pause_Plus_Move_Fits_The_Batch
+✓ Rule_3_Move_Fits_The_Other_Room
+✓ Rule_4_Boost_Fits_The_Own_Room
+elapsed_seconds 11

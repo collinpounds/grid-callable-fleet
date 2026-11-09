@@ -1,0 +1,5 @@
+policy/policybuild/
+policy/bin/
+__pycache__/
+.DS_Store
+live/machines.json

@@ -1,0 +1,16 @@
+
+## Theorem: Rule_1_Every_Amount_Is_Nonnegative
+Prove: For all s, pauseFor(s) is at least 0 and moveFor(s) is at least 0 and boostFor(s) is at least 0.
+Proof: omega.
+
+## Theorem: Rule_2_Pause_Plus_Move_Fits_The_Batch
+Prove: For all s, if s's batch is at least 0 then pauseFor(s) plus moveFor(s) is at most s's batch.
+Proof: omega.
+
+## Theorem: Rule_3_Move_Fits_The_Other_Room
+Prove: For all s, if s's room is at least 0 then moveFor(s) is at most s's room.
+Proof: omega.
+
+## Theorem: Rule_4_Boost_Fits_The_Own_Room
+Prove: For all s, if s's ownRoom is at least 0 then boostFor(s) is at most s's ownRoom.
+Proof: omega.

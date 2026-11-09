@@ -1,0 +1,232 @@
+[
+  {
+    "version": 1,
+    "author": "hand",
+    "parent": null,
+    "breakdown": {
+      "committed_kw": 21.9,
+      "score": 255.5,
+      "delivery_accuracy_pct": 100.0,
+      "mean_delivered_kw": 21.9,
+      "response_minutes": 0,
+      "missed_batch_kwh": 20.5,
+      "moved_kwh": 0.0,
+      "paused_kwh": 65.8,
+      "energy_cost_usd": 89.46,
+      "carbon_kg": 491.1,
+      "fleet_peak_kw": 118.2,
+      "min_size_100kw_met": true
+    },
+    "time": "14:04:20"
+  },
+  {
+    "version": 2,
+    "author": "claude-opus-5-5",
+    "parent": 1,
+    "time": "14:04:38",
+    "breakdown": {
+      "committed_kw": 21.9,
+      "score": 662.5,
+      "delivery_accuracy_pct": 100.0,
+      "mean_delivered_kw": 21.9,
+      "response_minutes": 0,
+      "missed_batch_kwh": 0.0,
+      "moved_kwh": 146.8,
+      "paused_kwh": 0.8,
+      "energy_cost_usd": 89.21,
+      "carbon_kg": 496.5,
+      "fleet_peak_kw": 120.3,
+      "min_size_100kw_met": true
+    },
+    "seconds": 46.1
+  },
+  {
+    "version": 3,
+    "author": "claude-opus-5-5",
+    "parent": 2,
+    "time": "14:05:41",
+    "breakdown": {
+      "committed_kw": 21.9,
+      "score": 662.5,
+      "delivery_accuracy_pct": 100.0,
+      "mean_delivered_kw": 21.9,
+      "response_minutes": 0,
+      "missed_batch_kwh": 0.0,
+      "moved_kwh": 152.8,
+      "paused_kwh": 0.8,
+      "energy_cost_usd": 89.16,
+      "carbon_kg": 496.6,
+      "fleet_peak_kw": 120.3,
+      "min_size_100kw_met": true
+    },
+    "seconds": 75.0
+  },
+  {
+    "version": 4,
+    "author": "claude-opus-5-5",
+    "parent": 2,
+    "time": "14:06:59",
+    "breakdown": {
+      "committed_kw": 21.9,
+      "score": 662.5,
+      "delivery_accuracy_pct": 100.0,
+      "mean_delivered_kw": 21.9,
+      "response_minutes": 0,
+      "missed_batch_kwh": 0.0,
+      "moved_kwh": 151.8,
+      "paused_kwh": 0.8,
+      "energy_cost_usd": 89.16,
+      "carbon_kg": 496.6,
+      "fleet_peak_kw": 120.3,
+      "min_size_100kw_met": true
+    },
+    "seconds": 62.9
+  },
+  {
+    "version": 5,
+    "author": "claude-opus-5-5",
+    "parent": 2,
+    "time": "14:08:01",
+    "breakdown": {
+      "committed_kw": 21.9,
+      "score": 662.5,
+      "delivery_accuracy_pct": 100.0,
+      "mean_delivered_kw": 21.9,
+      "response_minutes": 0,
+      "missed_batch_kwh": 0.0,
+      "moved_kwh": 139.3,
+      "paused_kwh": 0.8,
+      "energy_cost_usd": 89.28,
+      "carbon_kg": 496.4,
+      "fleet_peak_kw": 120.3,
+      "min_size_100kw_met": true
+    },
+    "seconds": 70.4
+  },
+  {
+    "version": 6,
+    "author": "claude-opus-5-5",
+    "parent": 2,
+    "time": "14:09:25",
+    "breakdown": {
+      "committed_kw": 21.9,
+      "score": 662.5,
+      "delivery_accuracy_pct": 100.0,
+      "mean_delivered_kw": 21.9,
+      "response_minutes": 0,
+      "missed_batch_kwh": 0.0,
+      "moved_kwh": 146.8,
+      "paused_kwh": 0.8,
+      "energy_cost_usd": 89.21,
+      "carbon_kg": 496.5,
+      "fleet_peak_kw": 120.3,
+      "min_size_100kw_met": true
+    },
+    "seconds": 89.7
+  },
+  {
+    "version": 7,
+    "author": "claude-opus-5-5",
+    "parent": 2,
+    "time": "14:11:02",
+    "breakdown": {
+      "committed_kw": 21.9,
+      "score": 662.5,
+      "delivery_accuracy_pct": 100.0,
+      "mean_delivered_kw": 21.9,
+      "response_minutes": 0,
+      "missed_batch_kwh": 0.0,
+      "moved_kwh": 146.8,
+      "paused_kwh": 0.8,
+      "energy_cost_usd": 89.21,
+      "carbon_kg": 496.5,
+      "fleet_peak_kw": 120.3,
+      "min_size_100kw_met": true
+    },
+    "seconds": 72.6
+  },
+  {
+    "version": 8,
+    "author": "claude-opus-5-5",
+    "parent": 2,
+    "time": "14:11:59",
+    "breakdown": {
+      "committed_kw": 21.9,
+      "score": 662.5,
+      "delivery_accuracy_pct": 100.0,
+      "mean_delivered_kw": 21.9,
+      "response_minutes": 0,
+      "missed_batch_kwh": 0.0,
+      "moved_kwh": 146.8,
+      "paused_kwh": 0.8,
+      "energy_cost_usd": 89.21,
+      "carbon_kg": 496.5,
+      "fleet_peak_kw": 120.3,
+      "min_size_100kw_met": true
+    },
+    "seconds": 57.1
+  },
+  {
+    "version": 9,
+    "author": "claude-opus-5-5",
+    "parent": 2,
+    "time": "14:12:56",
+    "breakdown": {
+      "committed_kw": 21.9,
+      "score": 662.5,
+      "delivery_accuracy_pct": 100.0,
+      "mean_delivered_kw": 21.9,
+      "response_minutes": 0,
+      "missed_batch_kwh": 0.0,
+      "moved_kwh": 146.8,
+      "paused_kwh": 0.8,
+      "energy_cost_usd": 89.21,
+      "carbon_kg": 496.5,
+      "fleet_peak_kw": 120.3,
+      "min_size_100kw_met": true
+    },
+    "seconds": 57.3
+  },
+  {
+    "version": 10,
+    "author": "claude-opus-5-5",
+    "parent": 2,
+    "time": "14:14:04",
+    "breakdown": {
+      "committed_kw": 21.9,
+      "score": 662.5,
+      "delivery_accuracy_pct": 100.0,
+      "mean_delivered_kw": 21.9,
+      "response_minutes": 0,
+      "missed_batch_kwh": 0.0,
+      "moved_kwh": 158.2,
+      "paused_kwh": 0.8,
+      "energy_cost_usd": 89.14,
+      "carbon_kg": 496.7,
+      "fleet_peak_kw": 120.3,
+      "min_size_100kw_met": true
+    },
+    "seconds": 67.5
+  },
+  {
+    "version": 11,
+    "author": "claude-opus-5-5",
+    "parent": 2,
+    "time": "14:15:11",
+    "breakdown": {
+      "committed_kw": 21.9,
+      "score": 662.4,
+      "delivery_accuracy_pct": 100.0,
+      "mean_delivered_kw": 22.1,
+      "response_minutes": 0,
+      "missed_batch_kwh": 0.0,
+      "moved_kwh": 167.1,
+      "paused_kwh": 0.8,
+      "energy_cost_usd": 89.13,
+      "carbon_kg": 496.8,
+      "fleet_peak_kw": 120.3,
+      "min_size_100kw_met": true
+    },
+    "seconds": 67.6
+  }
+]

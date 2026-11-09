@@ -1,0 +1,68 @@
+# Policy version 9
+# What it does:
+# During a grid event, batch work first moves to the best other site, if that site is
+# outside the event zone and has spare room. Moved work still gets done, so the
+# deadline is not at risk. Any part of the requested cut that cannot be moved is paused.
+# Together, moving and pausing deliver the full cut at once.
+# Outside events, the site runs batch work faster in two cases:
+#   (a) The site is behind schedule and cannot finish by midnight at the usual rate.
+#       It catches up as fast as its power limit allows.
+#   (b) Power is likely clean or cheap: midday solar hours (9am to 4pm), low carbon,
+#       or a low daytime price (7am to 6pm). The site builds up about 320 minutes of
+#       extra slack and may use all of its spare power to do it.
+#       Enough batch work is still left to pause or move when an evening event arrives.
+# What changed from version 8:
+# Every step up in slack so far has lowered cost and carbon, and the full cut was
+# still delivered. Version 9 builds about 320 minutes of slack instead of 260.
+# More batch work runs in clean midday hours and less in expensive, gas-heavy evening hours.
+# Moving and pausing during events are unchanged.
+# No boosting ever happens at a site inside an active event.
+# Every value is clamped so it is never negative and never exceeds batch, room or ownRoom.
+
+## To pauseFor (s: Situation) -> Int:
+    If s's event equals 1:
+        Let mutable m be 0.
+        If s's otherInEvent equals 0:
+            Set m to minOf(minOf(s's target, s's batch), s's room).
+            Set m to maxOf(m, 0).
+        Let rest be maxOf(s's target - m, 0).
+        Let avail be maxOf(s's batch - m, 0).
+        Return maxOf(minOf(rest, avail), 0).
+    Return 0.
+
+## To moveFor (s: Situation) -> Int:
+    If s's event equals 1:
+        If s's otherInEvent equals 0:
+            Let m be minOf(minOf(s's target, s's batch), s's room).
+            Return maxOf(m, 0).
+        Return 0.
+    Return 0.
+
+## To boostFor (s: Situation) -> Int:
+    If s's event equals 1:
+        Return 0.
+    If s's backlog is less than 1:
+        Return 0.
+    If s's ownRoom is less than 1:
+        Return 0.
+    # Catch up if the remaining work cannot finish by midnight at the usual rate.
+    Let plan be s's batch * s's left.
+    Let deficit be s's backlog - plan.
+    If deficit is greater than 0:
+        Return maxOf(minOf(deficit, s's ownRoom), 0).
+    # Build extra slack during likely clean or cheap hours.
+    Let mutable clean be 0.
+    If s's minute is greater than 539 and s's minute is less than 960:
+        Set clean to 1.
+    If s's carbon is less than 200:
+        Set clean to 1.
+    If s's minute is greater than 419 and s's minute is less than 1080 and s's price is less than 1500:
+        Set clean to 1.
+    If clean equals 1:
+        # Keep enough work for all but the last 64 intervals (about 320 minutes of slack).
+        Let horizon be maxOf(s's left - 64, 0).
+        Let keep be s's batch * horizon.
+        Let extra be s's backlog - keep.
+        Let cap be maxOf(s's ownRoom, 0).
+        Return maxOf(minOf(extra, cap), 0).
+    Return 0.

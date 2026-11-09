@@ -1,0 +1,14 @@
+
+## Main
+    Let mutable going be true.
+    While going:
+        Read line from the console.
+        If line equals "end":
+            Set going to false.
+        Otherwise:
+            Let f be split(line, ",").
+            Let s be a new Situation with minute parseInt(item 1 of f) and site parseInt(item 2 of f) and price parseInt(item 3 of f) and carbon parseInt(item 4 of f) and event parseInt(item 5 of f) and target parseInt(item 6 of f) and urgent parseInt(item 7 of f) and batch parseInt(item 8 of f) and backlog parseInt(item 9 of f) and left parseInt(item 10 of f) and room parseInt(item 11 of f) and otherPrice parseInt(item 12 of f) and otherInEvent parseInt(item 13 of f) and ownRoom parseInt(item 14 of f).
+            Let p be pauseFor(s).
+            Let m be moveFor(s).
+            Let b be boostFor(s).
+            Show "{p},{m},{b}".

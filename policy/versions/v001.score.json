@@ -1,0 +1,15 @@
+{
+  "committed_kw": 21.9,
+  "score": 255.5,
+  "delivery_accuracy_pct": 100.0,
+  "mean_delivered_kw": 21.9,
+  "response_minutes": 0,
+  "missed_batch_kwh": 20.5,
+  "moved_kwh": 0.0,
+  "paused_kwh": 65.8,
+  "boosted_kwh": 0.0,
+  "energy_cost_usd": 89.46,
+  "carbon_kg": 491.1,
+  "fleet_peak_kw": 118.2,
+  "min_size_100kw_met": true
+}

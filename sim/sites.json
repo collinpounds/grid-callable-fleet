@@ -1,0 +1,11 @@
+{
+  "_note": "SYNTHETIC fleet of six compute sites. Sizes are illustrative, chosen so the fleet totals about 125 kW, above the 100 kW FERC Order 2222 aggregation minimum. Prices come from each site's real CAISO hub. All power in watts.",
+  "sites": [
+    {"id": 0, "name": "San Francisco", "hub": "np15", "idle_w": 6000, "urgent_w": 6000, "batch_w": 9000, "max_w": 26000},
+    {"id": 1, "name": "Oakland",       "hub": "np15", "idle_w": 6000, "urgent_w": 6000, "batch_w": 9000, "max_w": 26000},
+    {"id": 2, "name": "Sacramento",    "hub": "np15", "idle_w": 6000, "urgent_w": 6000, "batch_w": 9000, "max_w": 26000},
+    {"id": 3, "name": "Fresno",        "hub": "zp26", "idle_w": 5000, "urgent_w": 4000, "batch_w": 6000, "max_w": 26000},
+    {"id": 4, "name": "Los Angeles",   "hub": "sp15", "idle_w": 5000, "urgent_w": 4000, "batch_w": 6000, "max_w": 26000},
+    {"id": 5, "name": "San Diego",     "hub": "sp15", "idle_w": 5000, "urgent_w": 4000, "batch_w": 6000, "max_w": 26000}
+  ]
+}

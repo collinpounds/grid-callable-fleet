@@ -1,0 +1,5 @@
+{
+  "shed": { "ssh": "site-a", "name": "Bay Area machine" },
+  "recv": { "ssh": "site-b", "name": "machine outside the Bay Area" },
+  "private_link": null
+}

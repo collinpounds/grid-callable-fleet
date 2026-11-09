@@ -1,0 +1,13 @@
+v002 (from v001) 71.9s: score 665.6
+v003 (from v002) 87.7s: score 664.3
+v004 (from v002) 123.7s: score 665.3
+v005 (from v002) 73.9s: score 667.4
+v006 (from v005) 51.3s: score 668.8
+v007 (from v006) 51.1s: score 671.1
+v008 (from v007) 42.1s: score 674.8
+v009 (from v008) 40.2s: score 680.7
+v010 (from v009) 50.7s: score 692.3
+v011 (from v010) 46.0s: score 692.3
+v012 (from v010) 161.4s: score 712.0
+v013 (from v012) 79.2s: score 713.7
+best: v013 score 713.7

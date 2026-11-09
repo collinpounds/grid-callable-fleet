@@ -1,0 +1,48 @@
+# Policy version 7
+# What it does:
+# During a grid event, this site still sheds the full amount the grid asks for, up to all of its batch work.
+# It first moves as much of that work as it can to another site, if that site is outside the event zone and has spare room.
+# It pauses only the part it could not move.
+# Outside an event, it moves batch work to another site only when power there is much cheaper (under 70 percent of the price here).
+# What changed from version 2:
+# Versions 2 to 6 all tied at the best score. Small changes to moving did not change cost or carbon enough to matter.
+# This version adds careful time shifting outside events, during the evening price peak (4 pm to 9 pm).
+# It applies only when power here costs more than 80 dollars per MWh and more than 2 hours of the day remain.
+# Then the site pauses up to half of the batch work it did not move, so that work runs later when power is cheaper.
+# Deadline guard: it pauses at most half of the spare capacity left today, measured as
+# (this interval's batch times intervals left) minus the work still to do. If there is no spare capacity, it pauses nothing.
+# The event behavior is the same as version 2, so the cut delivered to the grid should not change.
+# Safety: every result is at least zero. Moved work never exceeds the receiving site's spare room.
+# Pausing only uses batch work that was not moved, so moved plus paused work never exceeds this site's batch work.
+
+## To moveFor (s: Situation) -> Int:
+    Let batch be maxOf(s's batch, 0).
+    Let room be maxOf(s's room, 0).
+    If s's event equals 1:
+        If s's otherInEvent equals 0:
+            Let need be minOf(maxOf(s's target, 0), batch).
+            Return minOf(need, room).
+        Return 0.
+    If s's otherInEvent equals 0 and s's price is greater than 0 and s's otherPrice * 100 is less than s's price * 70:
+        Return minOf(batch, room).
+    Return 0.
+
+## To pauseFor (s: Situation) -> Int:
+    Let batch be maxOf(s's batch, 0).
+    Let room be maxOf(s's room, 0).
+    If s's event equals 1:
+        Let need be minOf(maxOf(s's target, 0), batch).
+        Let mutable moved be 0.
+        If s's otherInEvent equals 0:
+            Set moved to minOf(need, room).
+        Return maxOf(need - moved, 0).
+    Let mutable movedOut be 0.
+    If s's otherInEvent equals 0 and s's price is greater than 0 and s's otherPrice * 100 is less than s's price * 70:
+        Set movedOut to minOf(batch, room).
+    Let rest be maxOf(batch - movedOut, 0).
+    If s's price is greater than 8000 and s's left is greater than 24 and s's minute is greater than 959 and s's minute is less than 1260:
+        Let slack be batch * s's left - s's backlog.
+        If slack is greater than 0:
+            Return maxOf(minOf(rest / 2, slack / 2), 0).
+        Return 0.
+    Return 0.

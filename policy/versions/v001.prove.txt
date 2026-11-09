@@ -1,0 +1,7 @@
+Proving policy/proofs/v001.prove.lg
+✗ Rule_1_Every_Amount_Is_Nonnegative — an execution world is not proved: from le(Add(s_target, 1), s_batch) = true, le(s_event, 1) = true, le(1, s_event) = true the statement le(0, s_target) = true does not follow (DoesNotApply("omega: the hypotheses have an integer model, and `le(0, s_target) = true` does not follow from them — neither directly nor by refuting its negation-by-totality"))
+✓ Rule_2_Pause_Plus_Move_Fits_The_Batch
+✓ Rule_3_Move_Fits_The_Other_Room
+✓ Rule_4_Boost_Fits_The_Own_Room
+error: 1 theorem(s) failed to verify
+elapsed_seconds 0
